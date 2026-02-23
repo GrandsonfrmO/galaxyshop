@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 import { Settings, Play, XCircle, Shield, Zap, RefreshCw, LogOut, Disc, Skull, Pause } from 'lucide-react';
 
 // --- CONFIGURATION DU JEU ---

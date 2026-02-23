@@ -1,9 +1,15 @@
+import { config } from 'dotenv';
 import { Pool, QueryResult } from 'pg';
+
+// Charger les variables d'environnement
+config({ path: '.env.local' });
 
 // Initialize connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: false,
+  ssl: {
+    rejectUnauthorized: false
+  },
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,

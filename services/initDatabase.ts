@@ -1,6 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import pool from './database';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Initialize the database with schema and initial data
@@ -81,14 +85,12 @@ export const getDatabaseStats = async () => {
 };
 
 // Run initialization if this file is executed directly
-if (require.main === module) {
-  (async () => {
-    const connected = await testConnection();
-    if (connected) {
-      await initializeDatabase();
-      const stats = await getDatabaseStats();
-      console.log('📊 Database Statistics:', stats);
-    }
-    process.exit(0);
-  })();
-}
+(async () => {
+  const connected = await testConnection();
+  if (connected) {
+    await initializeDatabase();
+    const stats = await getDatabaseStats();
+    console.log('📊 Database Statistics:', stats);
+  }
+  process.exit(0);
+})();

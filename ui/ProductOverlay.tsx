@@ -1,13 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 import { X, ShoppingCart, Check, ChevronRight } from 'lucide-react';
 
 export const ProductOverlay: React.FC = () => {
-  const selectedProduct = useStore((state) => state.selectedProduct);
-  const setSelectedProduct = useStore((state) => state.setSelectedProduct);
-  const addToCart = useStore((state) => state.addToCart);
+  const { selectedProduct, setSelectedProduct, addToCart } = useStore();
 
   // Local state for selections
   const [selectedSize, setSelectedSize] = useState<string | null>(null);

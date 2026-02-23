@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../store/useStore';
-import { X, CheckCircle, Banknote, ArrowRight, Package, MapPin } from 'lucide-react';
-import { MODAL_ENTER, FADE_IN, SLIDE_UP, STAGGER_CONTAINER, STAGGER_ITEM } from '../config/animations';
+import { useStore } from '../context/AppContext';
+import { X, CheckCircle, Banknote, ArrowRight, Package, MapPin, Sparkles, Zap, ShoppingBag } from 'lucide-react';
+import { MODAL_ENTER, FADE_IN, STAGGER_CONTAINER, STAGGER_ITEM } from '../config/animations';
 
 export const CheckoutModal: React.FC = () => {
   const { cart, isCheckoutOpen, toggleCheckout, clearCart, deliveryZones } = useStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,10 +20,8 @@ export const CheckoutModal: React.FC = () => {
   });
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  
-  // Trouver la zone sélectionnée pour avoir le prix
-  const selectedZone = useMemo(() => 
-    deliveryZones.find(z => z.id === formData.zoneId), 
+  const selectedZone = useMemo(() =>
+    deliveryZones.find(z => z.id === formData.zoneId),
   [formData.zoneId, deliveryZones]);
 
   const deliveryFee = selectedZone ? selectedZone.price : 0;
@@ -33,23 +31,56 @@ export const CheckoutModal: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.zoneId) return; // Validation extra
+    if (!formData.zoneId) return;
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const orderData = {
+        customerName: `${formData.firstName} ${formData.lastName}`,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        deliveryAddress: formData.address,
+        deliveryZone: selectedZone?.name || '',
+        deliveryFee: deliveryFee,
+        subtotal: subtotal,
+        totalAmount: total,
+        items: cart.map(item => ({
+          productId: item.id,
+          productName: item.name,
+          quantity: item.quantity,
+          selectedSize: item.selectedSize,
+          selectedColor: item.selectedColor,
+          priceAtPurchase: item.price
+        }))
+      };
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+
+      if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+
+      const order = await response.json();
+      console.log('✅ Order created successfully:', order);
+
       setIsSubmitting(false);
       setIsSuccess(true);
       clearCart();
+
       setTimeout(() => {
         setIsSuccess(false);
         toggleCheckout(false);
         setFormData({ firstName: '', lastName: '', email: '', phone: '', address: '', city: 'Conakry', zoneId: '' });
-      }, 8000); 
-    }, 2000);
+      }, 8000);
+    } catch (error) {
+      console.error('❌ Error submitting order:', error);
+      setIsSubmitting(false);
+      alert('Erreur lors de la création de la commande. Veuillez réessayer.');
+    }
   };
 
   if (!isCheckoutOpen) return null;
@@ -58,199 +89,325 @@ export const CheckoutModal: React.FC = () => {
     <AnimatePresence>
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-           {/* Backdrop */}
-           <motion.div 
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             exit={{ opacity: 0 }}
-             onClick={() => !isSuccess && toggleCheckout(false)}
-             className="absolute inset-0 bg-black/80 backdrop-blur-md"
-           />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !isSuccess && toggleCheckout(false)}
+            className="absolute inset-0 bg-slate-950/90 backdrop-blur-md"
+          />
 
-           {/* Modal */}
-           <motion.div 
-             initial={MODAL_ENTER.initial}
-             animate={MODAL_ENTER.animate}
-             exit={MODAL_ENTER.exit}
-             transition={MODAL_ENTER.transition}
-             className="relative bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a] border border-white/10 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden"
-           >
-              {isSuccess ? (
-                <motion.div 
-                  {...FADE_IN}
-                  className="w-full py-20 flex flex-col items-center justify-center text-center p-8 bg-[#0a0a0a]"
+          <motion.div
+            initial={MODAL_ENTER.initial}
+            animate={MODAL_ENTER.animate}
+            exit={MODAL_ENTER.exit}
+            transition={MODAL_ENTER.transition}
+            className="relative galactic-bg border border-slate-800/60 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl shadow-slate-950/40 flex flex-col md:flex-row"
+          >
+            {isSuccess ? (
+              <motion.div
+                {...FADE_IN}
+                className="w-full py-20 flex flex-col items-center justify-center text-center p-8 galactic-bg"
+              >
+                <motion.div
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", duration: 0.8 }}
+                  className="w-28 h-28 bg-slate-800 rounded-full flex items-center justify-center text-slate-300 mb-6 shadow-2xl shadow-slate-950/50 glow-element border border-slate-700/50"
                 >
-                    <motion.div 
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-black mb-6"
-                    >
-                        <CheckCircle size={48} />
-                    </motion.div>
-                    <h2 className="text-3xl font-bold mb-2">Commande Confirmée !</h2>
-                    <p className="text-gray-400 max-w-md">
-                        Merci {formData.firstName} !
-                        <br/><br/>
-                        Livraison prévue vers : <strong>{selectedZone?.name}</strong>.
-                        <br/>
-                        Notre livreur vous contactera au <strong>+224 {formData.phone}</strong>.
-                        <br/><br/>
-                        Total à payer : <span className="text-white font-bold font-mono text-xl">{total.toLocaleString('fr-GN')} GNF</span>
-                    </p>
-                    <div className="mt-8 p-4 bg-white/5 rounded-lg border border-white/10">
-                        <p className="text-sm text-gray-500 uppercase tracking-widest mb-1">ID Commande</p>
-                        <p className="font-mono text-xl">GN-#{Math.floor(Math.random() * 1000000)}</p>
-                    </div>
-                    <button onClick={() => toggleCheckout(false)} className="mt-8 text-white underline underline-offset-4 hover:text-gray-300">
-                        Fermer
-                    </button>
+                  <CheckCircle size={56} strokeWidth={2.5} />
                 </motion.div>
-              ) : (
-                <>
-                  {/* Left: Form */}
-                  <div className="flex-1 p-6 md:p-12 border-b md:border-b-0 md:border-r border-white/10 bg-gradient-to-br from-[#0a0a0a] to-[#0f0f0f]">
-                    <div className="flex justify-between items-center mb-8 md:hidden">
-                       <h2 className="text-2xl font-bold">Paiement</h2>
-                       <button onClick={() => toggleCheckout(false)} className="p-2 hover:bg-white/10 rounded-lg transition"><X size={24} /></button>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="space-y-4 max-w-2xl"
+                >
+                  <h2 className="text-4xl font-bold text-slate-200">
+                    Commande Confirmée
+                  </h2>
+
+                  <div className="nebula-card rounded-2xl p-6 space-y-4 text-left">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-slate-800/60 rounded-lg flex items-center justify-center flex-shrink-0 border border-slate-700/50">
+                        <span className="text-lg">👤</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-600 mb-1">Client</p>
+                        <p className="font-semibold text-lg text-slate-200">{formData.firstName} {formData.lastName}</p>
+                      </div>
                     </div>
-                    
-                    <h2 className="text-3xl font-bold mb-10 hidden md:flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                            <Package size={20} className="text-white" />
-                        </div>
-                        Livraison (Guinée)
-                    </h2>
-                    
-                    <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-xs text-gray-400 uppercase tracking-wider font-bold">Prénom</label>
-                                <input required name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-purple-500/50 focus:bg-white/10 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-white placeholder-gray-600" placeholder="Mamadou" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs text-gray-400 uppercase tracking-wider font-bold">Nom</label>
-                                <input required name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-purple-500/50 focus:bg-white/10 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-white placeholder-gray-600" placeholder="Diallo" />
-                            </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-400 uppercase tracking-wider font-bold">Email</label>
-                            <input required type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-purple-500/50 focus:bg-white/10 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-white placeholder-gray-600" placeholder="exemple@email.com" />
-                        </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-slate-800/60 rounded-lg flex items-center justify-center flex-shrink-0 border border-slate-700/50">
+                        <MapPin size={20} className="text-slate-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-600 mb-1">Livraison vers</p>
+                        <p className="font-semibold text-slate-200">{selectedZone?.name}</p>
+                        <p className="text-sm text-slate-600 mt-1">{formData.address}</p>
+                      </div>
+                    </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-400 uppercase tracking-wider font-bold">Téléphone</label>
-                            <div className="flex">
-                                <span className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-white/10 border-r-0 rounded-l-xl p-3 text-gray-400 flex items-center font-mono text-sm">🇬🇳 +224</span>
-                                <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-r-xl p-3 focus:border-purple-500/50 focus:bg-white/10 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-white placeholder-gray-600" placeholder="6xx xx xx xx" />
-                            </div>
-                        </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-slate-800/60 rounded-lg flex items-center justify-center flex-shrink-0 border border-slate-700/50">
+                        <span className="text-lg">📱</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-600 mb-1">Contact</p>
+                        <p className="font-semibold text-slate-200">+224 {formData.phone}</p>
+                        <p className="text-xs text-slate-600 mt-1">Le livreur vous contactera sur ce numéro</p>
+                      </div>
+                    </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-400 uppercase tracking-wider font-bold flex items-center gap-2">
-                                <MapPin size={14} className="text-purple-400" />
-                                Zone de Livraison
-                            </label>
-                            <select 
-                                required 
-                                name="zoneId" 
-                                value={formData.zoneId} 
-                                onChange={handleInputChange} 
-                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-purple-500/50 focus:bg-white/10 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-white cursor-pointer"
-                            >
-                                <option value="" disabled className="text-gray-500">Choisir votre zone...</option>
-                                {deliveryZones.map(zone => (
-                                    <option key={zone.id} value={zone.id} className="bg-black text-white">
-                                        {zone.name} - {zone.price === 0 ? 'Gratuit' : `${zone.price.toLocaleString('fr-GN')} GNF`}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-400 uppercase tracking-wider font-bold">Précision Adresse</label>
-                            <input required name="address" value={formData.address} onChange={handleInputChange} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 focus:border-purple-500/50 focus:bg-white/10 focus:ring-1 focus:ring-purple-500/20 outline-none transition-all text-white placeholder-gray-600" placeholder="Ex: Kipé, Centre Émetteur, à côté de la pharmacie" />
-                        </div>
-                    </form>
+                    <div className="border-t border-slate-800/40 pt-4 mt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-slate-600">Montant total</span>
+                        <span className="text-2xl font-mono font-bold text-slate-200">{total.toLocaleString('fr-GN')} <span className="text-sm text-slate-600">GNF</span></span>
+                      </div>
+                      <div className="bg-slate-800/30 border border-slate-800/60 rounded-lg p-3 flex items-center gap-2">
+                        <Banknote size={16} className="text-slate-500" />
+                        <p className="text-xs text-slate-500">À payer en espèces à la livraison</p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Right: Summary */}
-                  <div className="w-full md:w-[450px] bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a] p-8 flex flex-col h-full border-t md:border-t-0 md:border-l border-white/10">
-                     <div className="flex justify-between items-center mb-8 md:flex hidden">
-                        <h2 className="text-2xl font-bold">Récapitulatif</h2>
-                        <button onClick={() => toggleCheckout(false)} className="p-2 hover:bg-white/10 rounded-lg transition"><X size={24} /></button>
-                     </div>
+                  <div className="bg-slate-800/20 border border-slate-800/50 rounded-xl p-6 nebula-card">
+                    <p className="text-xs text-slate-600 uppercase tracking-widest mb-2">Numéro de commande</p>
+                    <p className="font-mono text-3xl font-bold text-slate-300">GN-#{Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}</p>
+                    <p className="text-xs text-slate-600 mt-3">📧 Un email de confirmation a été envoyé à <span className="text-slate-400">{formData.email}</span></p>
+                  </div>
 
-                     <div className="flex-1 overflow-y-auto scrollbar-hide mb-8 space-y-3 max-h-[250px] md:max-h-none pr-2">
-                        <motion.div
-                          variants={STAGGER_CONTAINER}
-                          initial="initial"
-                          animate="animate"
-                          className="space-y-3"
-                        >
-                          {cart.map(item => (
-                              <motion.div 
-                                key={item.cartId} 
-                                variants={STAGGER_ITEM}
-                                className="flex gap-4 p-4 bg-gradient-to-r from-white/5 to-white/2 rounded-xl border border-white/10 hover:border-purple-500/30 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-pink-500/10 transition-all duration-300"
-                              >
-                                  <div className="w-24 h-24 bg-gradient-to-br from-white/10 to-white/5 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border border-white/10">
-                                      <img src={item.imageUrl} className="w-full h-full object-contain p-2" alt={item.name} />
-                                  </div>
-                                  <div className="flex-1 min-w-0 flex flex-col justify-between">
-                                      <div>
-                                          <p className="font-semibold text-sm truncate">{item.name}</p>
-                                          <p className="text-xs text-gray-400 mt-1">{item.selectedSize} / {item.selectedColor}</p>
-                                      </div>
-                                      <p className="text-xs text-gray-300 font-mono mt-2">{item.quantity} x {item.price.toLocaleString('fr-GN')} GNF</p>
-                                  </div>
-                              </motion.div>
+                  <button
+                    onClick={() => toggleCheckout(false)}
+                    className="cosmic-button w-full text-slate-100 py-4 rounded-xl font-bold transition-all"
+                  >
+                    Continuer mes achats
+                  </button>
+                </motion.div>
+              </motion.div>
+            ) : (
+              <>
+                <div className="flex-1 p-6 md:p-12 border-b md:border-b-0 md:border-r border-slate-800/40 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950">
+                  <div className="flex justify-between items-center mb-8 md:hidden">
+                    <h2 className="text-2xl font-bold text-slate-100">Paiement</h2>
+                    <button onClick={() => toggleCheckout(false)} className="p-2 hover:bg-slate-800/50 rounded-xl transition border border-slate-800/40">
+                      <X size={24} className="text-slate-400" />
+                    </button>
+                  </div>
+
+                  <div className="hidden md:block mb-10">
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="w-14 h-14 bg-slate-800 rounded-2xl flex items-center justify-center shadow-2xl shadow-slate-950/50 border border-slate-700/50">
+                        <Sparkles size={28} className="text-slate-300" />
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-bold text-slate-200">Finaliser la commande</h2>
+                        <p className="text-slate-600 text-sm mt-1">Remplissez vos informations de livraison</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 pb-4 border-b-2 border-slate-800/50">
+                        <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center shadow-lg shadow-slate-950/50 border border-slate-700/50">
+                          <span className="text-lg font-bold text-slate-300">1</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-200 uppercase tracking-wider">Informations personnelles</h3>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold flex items-center gap-1">
+                            Prénom <span className="text-red-500 text-lg">*</span>
+                          </label>
+                          <input required name="firstName" value={formData.firstName} onChange={handleInputChange} className="w-full bg-white/5 border-2 border-slate-800/60 hover:border-slate-700/80 focus:border-slate-700 rounded-xl p-3.5 focus:bg-white/10 focus:ring-2 focus:ring-slate-700/30 outline-none transition-all text-slate-100 placeholder-slate-700 font-medium" placeholder="Mamadou" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold flex items-center gap-1">
+                            Nom <span className="text-red-500 text-lg">*</span>
+                          </label>
+                          <input required name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full bg-white/5 border-2 border-slate-800/60 hover:border-slate-700/80 focus:border-slate-700 rounded-xl p-3.5 focus:bg-white/10 focus:ring-2 focus:ring-slate-700/30 outline-none transition-all text-slate-100 placeholder-slate-700 font-medium" placeholder="Diallo" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold flex items-center gap-1">
+                          Email <span className="text-red-500 text-lg">*</span>
+                        </label>
+                        <input required type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full bg-white/5 border-2 border-slate-800/60 hover:border-slate-700/80 focus:border-slate-700 rounded-xl p-3.5 focus:bg-white/10 focus:ring-2 focus:ring-slate-700/30 outline-none transition-all text-slate-100 placeholder-slate-700 font-medium" placeholder="exemple@email.com" />
+                        <p className="text-xs text-slate-600 mt-1.5">Pour recevoir la confirmation de commande</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold flex items-center gap-1">
+                          Téléphone <span className="text-red-500 text-lg">*</span>
+                        </label>
+                        <div className="flex">
+                          <span className="bg-slate-800/60 border-2 border-slate-800/60 border-r-0 rounded-l-xl p-3.5 text-slate-500 flex items-center font-mono text-sm font-bold">🇬🇳 +224</span>
+                          <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-white/5 border-2 border-slate-800/60 rounded-r-xl p-3.5 focus:border-slate-700 focus:bg-white/10 focus:ring-2 focus:ring-slate-700/30 outline-none transition-all text-slate-100 placeholder-slate-700 font-medium" placeholder="6xx xx xx xx" />
+                        </div>
+                        <p className="text-xs text-slate-600 mt-1.5">Le livreur vous contactera sur ce numéro</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 pb-4 border-b-2 border-slate-800/50">
+                        <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center shadow-lg shadow-slate-950/50 border border-slate-700/50">
+                          <span className="text-lg font-bold text-slate-300">2</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-200 uppercase tracking-wider">Adresse de livraison</h3>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold flex items-center gap-2">
+                          <MapPin size={16} className="text-slate-500" />
+                          Zone de Livraison <span className="text-red-500 text-lg">*</span>
+                        </label>
+                        <select required name="zoneId" value={formData.zoneId} onChange={handleInputChange} className="w-full bg-white/5 border-2 border-slate-800/60 hover:border-slate-700/80 focus:border-slate-700 rounded-xl p-3.5 focus:bg-white/10 focus:ring-2 focus:ring-slate-700/30 outline-none transition-all text-slate-100 cursor-pointer font-medium">
+                          <option value="" disabled className="text-slate-700">Choisir votre zone...</option>
+                          {deliveryZones.map(zone => (
+                            <option key={zone.id} value={zone.id} className="bg-slate-950 text-slate-100">
+                              {zone.name} - {zone.price === 0 ? 'Livraison gratuite' : `${zone.price.toLocaleString('fr-GN')} GNF`}
+                            </option>
                           ))}
-                        </motion.div>
-                     </div>
+                        </select>
+                        {selectedZone && (
+                          <div className={`mt-3 p-4 rounded-xl border-2 transition-all ${selectedZone.price === 0 ? 'bg-slate-800/30 border-slate-800/60' : 'bg-slate-800/30 border-slate-800/60'}`}>
+                            <p className="text-xs font-semibold flex items-center gap-2">
+                              {selectedZone.price === 0 ? (
+                                <>
+                                  <span className="text-lg">✓</span>
+                                  <span className="text-slate-400">Livraison gratuite pour <span className="text-slate-300">{selectedZone.name}</span></span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-lg">🚚</span>
+                                  <span className="text-slate-400">Frais de livraison: <span className="text-slate-300">{selectedZone.price.toLocaleString('fr-GN')} GNF</span> pour {selectedZone.name}</span>
+                                </>
+                              )}
+                            </p>
+                          </div>
+                        )}
+                      </div>
 
-                     <div className="border-t border-white/10 pt-8 space-y-4">
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-400">Sous-total</span>
-                            <span className="font-mono font-semibold">{subtotal.toLocaleString('fr-GN')} GNF</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-400">Livraison</span>
-                            <span className={`font-bold uppercase text-xs tracking-wider ${deliveryFee === 0 ? 'text-green-400' : 'font-mono'}`}>
-                                {deliveryFee === 0 ? 'Gratuite' : `${deliveryFee.toLocaleString('fr-GN')} GNF`}
-                            </span>
-                        </div>
-                        <div className="flex justify-between text-xl font-bold border-t border-white/10 pt-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 p-4 rounded-lg">
-                            <span>Total</span>
-                            <span className="font-mono text-white">{total.toLocaleString('fr-GN')} GNF</span>
-                        </div>
+                      <div className="space-y-2">
+                        <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold flex items-center gap-1">
+                          Adresse précise <span className="text-red-500 text-lg">*</span>
+                        </label>
+                        <input required name="address" value={formData.address} onChange={handleInputChange} className="w-full bg-white/5 border-2 border-slate-800/60 hover:border-slate-700/80 focus:border-slate-700 rounded-xl p-3.5 focus:bg-white/10 focus:ring-2 focus:ring-slate-700/30 outline-none transition-all text-slate-100 placeholder-slate-700 font-medium" placeholder="Ex: Kipé, Centre Émetteur, à côté de la pharmacie" />
+                        <p className="text-xs text-slate-600 mt-1.5">Soyez le plus précis possible pour faciliter la livraison</p>
+                      </div>
+                    </div>
+                  </form>
+                </div>
 
-                        {/* Payment Method Display */}
-                        <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/30 p-4 rounded-xl flex items-start gap-3 mt-6">
-                            <Banknote className="text-blue-400 shrink-0 mt-0.5" size={20} />
-                            <div>
-                                <p className="font-bold text-sm text-blue-300">Paiement à la livraison</p>
-                                <p className="text-xs text-blue-400/70 mt-1 leading-relaxed">Payez en espèces à la réception de votre commande.</p>
-                            </div>
-                        </div>
-
-                        <button 
-                            type="submit" 
-                            form="checkout-form"
-                            disabled={isSubmitting}
-                            className="w-full py-4 mt-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:from-purple-700 hover:to-pink-700 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_30px_rgba(168,85,247,0.3)]"
-                        >
-                            {isSubmitting ? (
-                                <span className="animate-pulse">TRAITEMENT...</span>
-                            ) : (
-                                <>CONFIRMER ({total.toLocaleString('fr-GN')} GNF) <ArrowRight size={20} /></>
-                            )}
-                        </button>
-                     </div>
+                <div className="w-full md:w-[480px] bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 p-8 flex flex-col h-full border-t md:border-t-0 md:border-l border-slate-800/40">
+                  <div className="flex justify-between items-start mb-8">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-200">Récapitulatif</h2>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs text-slate-600 font-mono uppercase tracking-widest">{cart.length} article{cart.length > 1 ? 's' : ''}</span>
+                        <div className="w-1.5 h-1.5 bg-slate-700 rounded-full shadow-lg shadow-slate-950/50" />
+                      </div>
+                    </div>
+                    <button onClick={() => toggleCheckout(false)} className="hidden md:block p-2.5 hover:bg-slate-800/50 rounded-xl transition border border-slate-800/40">
+                      <X size={24} className="text-slate-400" />
+                    </button>
                   </div>
-                </>
-              )}
-           </motion.div>
+
+                  <div className="flex-1 overflow-y-auto scrollbar-hide mb-8 space-y-3 max-h-[250px] md:max-h-none pr-2">
+                    <motion.div variants={STAGGER_CONTAINER} initial="initial" animate="animate" className="space-y-3">
+                      {cart.map((item, idx) => (
+                        <motion.div key={item.cartId} variants={STAGGER_ITEM} className="nebula-card p-4 rounded-xl hover:shadow-lg hover:shadow-slate-950/40 transition-all duration-300 group relative border border-slate-800/40 hover:border-slate-700/60">
+                          {/* Item Counter */}
+                          <div className="absolute -top-2 -left-2 w-6 h-6 bg-slate-800 rounded-full flex items-center justify-center text-slate-300 text-xs font-bold shadow-lg border border-slate-700/50">
+                            {idx + 1}
+                          </div>
+
+                          <div className="flex gap-4">
+                            <div className="w-24 h-24 bg-gradient-to-br from-slate-800/40 to-slate-950 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border border-slate-700/40 group-hover:border-slate-600/60 transition-all shadow-md">
+                              <img src={item.imageUrl} className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform" alt={item.name} />
+                            </div>
+                            <div className="flex-1 min-w-0 flex flex-col justify-between">
+                              <div>
+                                <p className="font-semibold text-sm truncate text-slate-200 group-hover:text-slate-100 transition-colors">{item.name}</p>
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                  <span className="text-xs bg-slate-800/40 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700/40 font-medium">{item.selectedSize}</span>
+                                  <span className="text-xs bg-slate-800/40 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700/40 font-medium">{item.selectedColor}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-800/40">
+                                <p className="text-xs text-slate-600 font-semibold">Qté: <span className="text-slate-300 font-bold text-sm">{item.quantity}</span></p>
+                                <p className="text-sm font-mono font-bold text-slate-300">{(item.price * item.quantity).toLocaleString('fr-GN')}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </div>
+
+                  <div className="border-t border-slate-800/40 pt-8 space-y-4">
+                    <div className="space-y-3 nebula-card rounded-xl p-5 border border-slate-800/40">
+                      <div className="flex justify-between text-sm items-center pb-3 border-b border-slate-800/40">
+                        <span className="text-slate-600 font-semibold">Sous-total</span>
+                        <span className="font-mono font-bold text-lg text-slate-300">{subtotal.toLocaleString('fr-GN')} <span className="text-xs text-slate-600">GNF</span></span>
+                      </div>
+                      <div className="flex justify-between text-sm items-center">
+                        <span className="text-slate-600 font-semibold flex items-center gap-2">
+                          <Package size={16} className="text-slate-500" />
+                          Livraison
+                        </span>
+                        <span className={`font-bold uppercase text-xs tracking-wider transition-colors ${deliveryFee === 0 ? 'text-slate-500 text-sm' : 'font-mono text-slate-300'}`}>
+                          {deliveryFee === 0 ? 'Gratuite' : `${deliveryFee.toLocaleString('fr-GN')} GNF`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-2xl font-bold bg-slate-800/40 p-6 rounded-2xl border-2 border-slate-800/60 shadow-xl shadow-slate-950/30 glow-element">
+                      <span className="text-slate-200 font-bold uppercase tracking-wider">Total</span>
+                      <span className="font-mono text-slate-200 text-3xl">{total.toLocaleString('fr-GN')} <span className="text-lg text-slate-600">GNF</span></span>
+                    </div>
+
+                    <div className="bg-slate-800/30 border-2 border-slate-800/60 p-5 rounded-2xl flex items-start gap-4 shadow-lg shadow-slate-950/20">
+                      <div className="w-12 h-12 bg-slate-800/60 rounded-xl flex items-center justify-center flex-shrink-0 border border-slate-700/50">
+                        <Banknote className="text-slate-400" size={24} />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm text-slate-300 mb-1">Paiement à la livraison</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">Payez en espèces lors de la réception. Aucun paiement en ligne requis.</p>
+                      </div>
+                    </div>
+
+                    <button type="submit" form="checkout-form" disabled={isSubmitting || !formData.zoneId} className="cosmic-button w-full py-4 mt-6 text-slate-100 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none shadow-xl shadow-slate-950/30 hover:shadow-slate-950/50 uppercase tracking-wider">
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-slate-300/30 border-t-slate-300 rounded-full animate-spin"></div>
+                          <span>TRAITEMENT...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag size={22} />
+                          <span>CONFIRMER LA COMMANDE</span>
+                          <ArrowRight size={22} />
+                        </>
+                      )}
+                    </button>
+
+                    {!formData.zoneId && (
+                      <div className="bg-red-950/30 border border-red-900/50 rounded-xl p-3 flex items-center gap-2">
+                        <span className="text-lg">⚠️</span>
+                        <p className="text-xs text-red-300 font-semibold">Veuillez sélectionner une zone de livraison</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </motion.div>
         </div>
       )}
     </AnimatePresence>

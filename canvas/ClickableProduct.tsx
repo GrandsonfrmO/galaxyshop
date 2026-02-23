@@ -4,7 +4,7 @@ import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { useCursor, Text, Float, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import { Product } from '../types';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 
 interface ClickableProductProps {
   product: Product;
@@ -197,7 +197,7 @@ const TShirtModel = ({ color }: { color: string }) => (
 export const ClickableProduct: React.FC<ClickableProductProps> = ({ product }) => {
   const meshRef = useRef<THREE.Group>(null);
   const [hovered, setHover] = useState(false);
-  const setSelectedProduct = useStore((state) => state.setSelectedProduct);
+  const { setSelectedProduct } = useStore();
 
   useCursor(hovered);
 

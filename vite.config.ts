@@ -24,6 +24,25 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      }
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom'],
+              'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
+              'animation-vendor': ['framer-motion', 'gsap'],
+            },
+          },
+        },
+        chunkSizeWarningLimit: 1000,
+        minify: 'esbuild',
+        cssCodeSplit: true,
+        sourcemap: mode !== 'production',
+      },
+      optimizeDeps: {
+        include: ['react', 'react-dom', 'three', '@react-three/fiber', '@react-three/drei'],
+        exclude: ['@google/genai'],
+      },
     };
 });

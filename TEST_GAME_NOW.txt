@@ -1,0 +1,51 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║           🎮 TESTER LE MINI-JEU MAINTENANT                  ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📋 ÉTAPES RAPIDES:
+
+1️⃣  Lancer le serveur:
+    npm run dev
+
+2️⃣  Ouvrir le navigateur:
+    http://localhost:5173
+
+3️⃣  Lancer le guide de test:
+    node scripts/test-game-manual.mjs
+
+4️⃣  Suivre la checklist de 15 tests
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 TESTS PRIORITAIRES (5 minutes):
+
+✓ Cliquer sur le vaisseau rouge dans la scène 3D
+✓ Démarrer une partie
+✓ Jouer pendant 2-3 minutes
+✓ Vérifier que le jeu est fluide
+✓ Appuyer sur ESC pour pause
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🐛 BUGS À SURVEILLER:
+
+❌ Crash après 10-15 minutes
+❌ Collisions imprécises
+❌ Pas d'overlay pause
+❌ High score perdu au refresh
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 FICHIERS UTILES:
+
+• GAME_FIXES_CRITIQUES.md      → Solutions détaillées
+• GAME_TEST_REPORT.md           → Guide complet
+• 🎮_GAME_READY_FOR_TESTING.md → Vue d'ensemble
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 C'EST PARTI !
+
+Lancez: node scripts/test-game-manual.mjs

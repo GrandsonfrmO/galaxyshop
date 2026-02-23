@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { MeshReflectorMaterial, Text, Float, SpotLight, useDepthBuffer } from '@react-three/drei';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 import { ClickableProduct } from './ClickableProduct';
 import { MOCK_POSTERS } from '../services/mockData';
 
@@ -68,7 +68,7 @@ const NeonStrip = ({ position, args, color = "#fff" }: any) => (
 );
 
 export const TheBoutique: React.FC = () => {
-  const products = useStore((state) => state.products);
+  const { products } = useStore();
   const depthBuffer = useDepthBuffer({ size: 256 });
   const { viewport } = useThree();
 

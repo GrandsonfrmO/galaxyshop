@@ -1,12 +1,21 @@
-import { getAllProducts, getDisplayProducts, addProduct, updateProduct, deleteProduct } from '../services/productService';
+import { getAllProducts, getDisplayProducts, addProduct, updateProduct, deleteProduct, searchProducts, getCategories } from '../services/productService';
 import { Product } from '../types';
 
 /**
- * GET /api/products - Get all products
+ * GET /api/products - Get all products or search with filters
  * GET /api/products/display - Get first 3 products for 3D display
+ * GET /api/products/categories - Get all unique categories
  * POST /api/products - Create a new product
  * PUT /api/products/:id - Update a product
  * DELETE /api/products/:id - Delete a product
+ * 
+ * Query parameters for search:
+ * - search: string (search in name and description)
+ * - category: string (filter by category)
+ * - minPrice: number (minimum price)
+ * - maxPrice: number (maximum price)
+ * - sortBy: 'name' | 'price' | 'created_at' (default: created_at)
+ * - sortOrder: 'asc' | 'desc' (default: desc)
  */
 
 export async function GET(request: Request) {
@@ -14,9 +23,40 @@ export async function GET(request: Request) {
   const pathname = url.pathname;
 
   try {
+    // Get categories
+    if (pathname.includes('/categories')) {
+      const categories = await getCategories();
+      return new Response(JSON.stringify(categories), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     // Get display products (first 3)
     if (pathname.includes('/display')) {
       const products = await getDisplayProducts();
+      return new Response(JSON.stringify(products), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Check if there are search/filter parameters
+    const search = url.searchParams.get('search');
+    const category = url.searchParams.get('category');
+    const minPrice = url.searchParams.get('minPrice');
+    const maxPrice = url.searchParams.get('maxPrice');
+    const sortBy = url.searchParams.get('sortBy') as 'name' | 'price' | 'created_at' | null;
+    const sortOrder = url.searchParams.get('sortOrder') as 'asc' | 'desc' | null;
+
+    // If any filter is present, use search function
+    if (search || category || minPrice || maxPrice || sortBy || sortOrder) {
+      const products = await searchProducts({
+        search: search || undefined,
+        category: category || undefined,
+        minPrice: minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+        sortBy: sortBy || undefined,
+        sortOrder: sortOrder || undefined,
+      });
       return new Response(JSON.stringify(products), {
         headers: { 'Content-Type': 'application/json' },
       });

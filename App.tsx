@@ -8,7 +8,7 @@ import { CheckoutModal } from './ui/CheckoutModal';
 import { ShopModal } from './ui/ShopModal';
 import { PWAInstallPrompt } from './ui/PWAInstallPrompt';
 import { NeonVanguard } from './game/NeonVanguard';
-import { useStore } from './store/useStore';
+import { useStore } from './context/AppContext';
 
 // Lazy load the 3D scene for better performance
 const SceneCanvas = lazy(() => import('./canvas/SceneCanvas').then(m => ({ default: m.SceneCanvas })));
@@ -24,15 +24,14 @@ const SceneLoadingFallback = () => (
 );
 
 function App() {
-  const scene = useStore(state => state.scene);
-  const checkAdminSession = useStore(state => state.checkAdminSession);
-  const loadDisplayProducts = useStore(state => state.loadDisplayProducts);
+  const { scene, checkAdminSession, loadDisplayProducts, loadProducts } = useStore();
   const [is3DReady, setIs3DReady] = useState(false);
 
-  // Load display products on mount
+  // Load products on mount
   useEffect(() => {
     loadDisplayProducts();
-  }, [loadDisplayProducts]);
+    loadProducts();
+  }, [loadDisplayProducts, loadProducts]);
 
   // Check admin session every minute
   useEffect(() => {

@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Deep Space Professional Theme */
+@keyframes subtle-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes float-subtle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-20px) translateX(10px); }
+  50% { transform: translateY(-40px) translateX(-10px); }
+  75% { transform: translateY(-20px) translateX(10px); }
+}
+
+@keyframes deep-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(100, 116, 139, 0.2), inset 0 0 15px rgba(100, 116, 139, 0.05); }
+  50% { box-shadow: 0 0 25px rgba(100, 116, 139, 0.35), inset 0 0 20px rgba(100, 116, 139, 0.1); }
+}
+
+@keyframes space-shift {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+.galactic-bg {
+  background: radial-gradient(ellipse at 20% 50%, rgba(71, 85, 105, 0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, rgba(51, 65, 85, 0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 40% 20%, rgba(30, 41, 59, 0.1) 0%, transparent 50%),
+              linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background-size: 400% 400%;
+  animation: space-shift 20s ease infinite;
+}
+
+.star {
+  animation: subtle-glow 4s ease-in-out infinite;
+}
+
+.glow-element {
+  animation: deep-pulse 4s ease-in-out infinite;
+}
+
+.float-element {
+  animation: float-subtle 5s ease-in-out infinite;
+}
+
+.nebula-card {
+  background: linear-gradient(135deg, rgba(71, 85, 105, 0.08) 0%, rgba(51, 65, 85, 0.05) 100%);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+  box-shadow: 0 0 20px rgba(71, 85, 105, 0.1), inset 0 0 15px rgba(100, 116, 139, 0.05);
+  transition: all 0.3s ease;
+}
+
+.nebula-card:hover {
+  border-color: rgba(100, 116, 139, 0.35);
+  box-shadow: 0 0 30px rgba(71, 85, 105, 0.15), inset 0 0 20px rgba(100, 116, 139, 0.08);
+}
+
+.cosmic-button {
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
+  box-shadow: 0 0 15px rgba(71, 85, 105, 0.3), 0 0 30px rgba(51, 65, 85, 0.2);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.cosmic-button:hover {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  box-shadow: 0 0 25px rgba(100, 116, 139, 0.4), 0 0 40px rgba(71, 85, 105, 0.3);
+  transform: translateY(-2px);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.cosmic-button:active {
+  transform: translateY(0px);
+}
+
+.star-field {
+  position: relative;
+  overflow: hidden;
+}
+
+.star-field::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 60px 70px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 50px 50px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 130px 80px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 90px 10px, #fff, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: subtle-glow 5s ease-in-out infinite;
+  pointer-events: none;
+}

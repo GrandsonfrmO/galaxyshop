@@ -4,13 +4,12 @@ import { useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 
 export const CameraRig: React.FC = () => {
   const { camera, viewport } = useThree();
   const controlsRef = useRef<any>(null);
-  const sceneState = useStore((state) => state.scene);
-  const selectedProduct = useStore((state) => state.selectedProduct);
+  const { scene: sceneState, selectedProduct } = useStore();
 
   // Helper to safely animate controls
   const animateControls = (targetPos: THREE.Vector3, lookAt: THREE.Vector3, duration: number, ease: string) => {

@@ -121,45 +121,7 @@ CREATE TABLE IF NOT EXISTS pwa_settings (
 );
 
 -- Insert Initial Data
-INSERT INTO products (name, description, price, category, image_url, sizes, colors, position_x, position_y, position_z)
-VALUES
-  (
-    'Grandson Hoodie V1',
-    'Heavyweight cotton hoodie with embroidered logo.',
-    350000,
-    'Vêtements',
-    'https://picsum.photos/400/400?random=1',
-    ARRAY['S', 'M', 'L', 'XL'],
-    ARRAY['Black', 'Navy'],
-    -4.5,
-    0.8,
-    0
-  ),
-  (
-    'Orbit Cap',
-    '5-panel cap structured for deep space exploration.',
-    120000,
-    'Accessoires',
-    'https://picsum.photos/400/400?random=2',
-    ARRAY['One Size'],
-    ARRAY['Beige', 'Olive'],
-    0,
-    1.4,
-    0
-  ),
-  (
-    'Lunar Cargo Pants',
-    'Technical cargo pants with multiple pockets and relaxed fit.',
-    280000,
-    'Pantalons',
-    'https://picsum.photos/400/400?random=3',
-    ARRAY['30', '32', '34', '36'],
-    ARRAY['Black', 'Grey'],
-    4.5,
-    0.8,
-    0
-  )
-ON CONFLICT DO NOTHING;
+-- No demo products - admin will add products manually
 
 INSERT INTO delivery_zones (name, price)
 VALUES

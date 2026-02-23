@@ -1,125 +1,147 @@
 /**
  * Email Service with Resend
  * Service d'envoi d'emails avec Resend
+ * Includes retry logic and email tracking
  */
 
 import { Resend } from 'resend';
+import {
+  baseEmailTemplate,
+  orderConfirmationContent,
+  welcomeEmailContent,
+  shippingNotificationContent,
+  passwordResetContent,
+  contactFormResponseContent,
+  adminOrderNotificationContent,
+} from './emailTemplates';
+import { logEmailAttempt, scheduleEmailRetry, markEmailAsSent } from './emailRetryService';
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY || process.env.VITE_RESEND_API_KEY);
 
-// Email templates
+// Email configuration
 const EMAIL_FROM = process.env.RESEND_EMAIL_FROM || 'onboarding@resend.dev';
 const COMPANY_NAME = 'Grandson Clothes';
 
 /**
- * Send order confirmation email
+ * Send order confirmation email to customer with retry logic
  */
 export const sendOrderConfirmation = async (
-  email: string,
-  orderData: {
-    orderId: number;
-    customerName: string;
-    items: Array<{ name: string; quantity: number; price: number }>;
-    total: number;
-    estimatedDelivery: string;
-  }
+  order: any,
+  items: any[]
 ) => {
-  const itemsHtml = orderData.items
-    .map(
-      (item) =>
-        `<tr>
-          <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.price.toLocaleString()} GNF</td>
-        </tr>`
-    )
-    .join('');
+  const content = orderConfirmationContent(order, items);
+  const html = baseEmailTemplate({
+    preheader: 'Confirmation de Commande',
+    content,
+    cta: {
+      text: 'Voir ma commande',
+      url: `https://grandson-clothes.com/orders/${order.id}`,
+    },
+  });
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #000; color: #fff; padding: 20px; text-align: center; }
-          .content { padding: 20px; background: #f9f9f9; }
-          .order-details { background: #fff; padding: 20px; margin: 20px 0; border: 1px solid #eee; }
-          table { width: 100%; border-collapse: collapse; }
-          .total { font-size: 18px; font-weight: bold; color: #000; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-          .button { display: inline-block; padding: 10px 20px; background: #8b5cf6; color: #fff; text-decoration: none; border-radius: 5px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>${COMPANY_NAME}</h1>
-            <p>Confirmation de Commande</p>
-          </div>
-
-          <div class="content">
-            <p>Bonjour ${orderData.customerName},</p>
-            <p>Merci pour votre commande! Voici les détails:</p>
-
-            <div class="order-details">
-              <h2>Commande #${orderData.orderId}</h2>
-              
-              <table>
-                <thead>
-                  <tr style="background: #f0f0f0;">
-                    <th style="padding: 10px; text-align: left;">Produit</th>
-                    <th style="padding: 10px; text-align: center;">Quantité</th>
-                    <th style="padding: 10px; text-align: right;">Prix</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${itemsHtml}
-                </tbody>
-              </table>
-
-              <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;">
-                <p style="font-size: 16px;">
-                  <strong>Total:</strong> <span class="total">${orderData.total.toLocaleString()} GNF</span>
-                </p>
-                <p>
-                  <strong>Livraison estimée:</strong> ${orderData.estimatedDelivery}
-                </p>
-              </div>
-            </div>
-
-            <p>Vous pouvez suivre votre commande sur votre compte.</p>
-            <p style="text-align: center; margin: 30px 0;">
-              <a href="https://grandson-clothes.com/orders/${orderData.orderId}" class="button">Voir ma commande</a>
-            </p>
-
-            <p>Merci de votre confiance!</p>
-            <p>${COMPANY_NAME}</p>
-          </div>
-
-          <div class="footer">
-            <p>© 2024 ${COMPANY_NAME}. Tous droits réservés.</p>
-            <p>Cet email a été envoyé à ${email}</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+  const subject = `Confirmation de commande #${order.id}`;
 
   try {
+    // Log email attempt
+    const emailLogId = await logEmailAttempt(
+      order.id,
+      order.customer_email,
+      subject,
+      'order_confirmation',
+      'pending'
+    );
+
     const result = await resend.emails.send({
       from: EMAIL_FROM,
-      to: email,
-      subject: `Confirmation de commande #${orderData.orderId}`,
+      to: order.customer_email,
+      subject,
       html,
     });
 
-    console.log('✅ Order confirmation email sent:', result);
+    // Mark as sent
+    await markEmailAsSent(emailLogId, result.id);
+    console.log('✅ Order confirmation email sent to customer:', result);
     return result;
   } catch (error) {
     console.error('❌ Error sending order confirmation email:', error);
+    
+    // Log failure and schedule retry
+    const emailLogId = await logEmailAttempt(
+      order.id,
+      order.customer_email,
+      subject,
+      'order_confirmation',
+      'failed',
+      String(error)
+    );
+    
+    await scheduleEmailRetry(emailLogId, String(error));
+    throw error;
+  }
+};
+
+/**
+ * Send order notification email to admin with retry logic
+ */
+export const sendOrderNotificationToAdmin = async (
+  order: any,
+  items: any[]
+) => {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  
+  if (!adminEmail) {
+    console.warn('⚠️ ADMIN_EMAIL not configured in environment variables');
+    return;
+  }
+
+  const content = adminOrderNotificationContent(order, items);
+  const html = baseEmailTemplate({
+    preheader: 'Nouvelle Commande',
+    content,
+    cta: {
+      text: 'Voir la commande',
+      url: `https://grandson-clothes.com/admin/orders/${order.id}`,
+    },
+  });
+
+  const subject = `[NOUVELLE COMMANDE] #${order.id} - ${order.customer_name}`;
+
+  try {
+    // Log email attempt
+    const emailLogId = await logEmailAttempt(
+      order.id,
+      adminEmail,
+      subject,
+      'admin_notification',
+      'pending'
+    );
+
+    const result = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: adminEmail,
+      subject,
+      html,
+    });
+
+    // Mark as sent
+    await markEmailAsSent(emailLogId, result.id);
+    console.log('✅ Order notification email sent to admin:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ Error sending order notification to admin:', error);
+    
+    // Log failure and schedule retry
+    const emailLogId = await logEmailAttempt(
+      order.id,
+      adminEmail,
+      subject,
+      'admin_notification',
+      'failed',
+      String(error)
+    );
+    
+    await scheduleEmailRetry(emailLogId, String(error));
     throw error;
   }
 };
@@ -128,47 +150,15 @@ export const sendOrderConfirmation = async (
  * Send welcome email
  */
 export const sendWelcomeEmail = async (email: string, name: string) => {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #000; color: #fff; padding: 20px; text-align: center; }
-          .content { padding: 20px; background: #f9f9f9; }
-          .button { display: inline-block; padding: 10px 20px; background: #8b5cf6; color: #fff; text-decoration: none; border-radius: 5px; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>${COMPANY_NAME}</h1>
-            <p>Bienvenue!</p>
-          </div>
-
-          <div class="content">
-            <p>Bonjour ${name},</p>
-            <p>Bienvenue chez ${COMPANY_NAME}!</p>
-            <p>Nous sommes heureux de vous accueillir. Explorez notre collection exclusive de vêtements et accessoires.</p>
-
-            <p style="text-align: center; margin: 30px 0;">
-              <a href="https://grandson-clothes.com" class="button">Découvrir la boutique</a>
-            </p>
-
-            <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
-            <p>${COMPANY_NAME}</p>
-          </div>
-
-          <div class="footer">
-            <p>© 2024 ${COMPANY_NAME}. Tous droits réservés.</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+  const content = welcomeEmailContent(name);
+  const html = baseEmailTemplate({
+    preheader: 'Bienvenue!',
+    content,
+    cta: {
+      text: 'Découvrir la boutique',
+      url: 'https://grandson-clothes.com',
+    },
+  });
 
   try {
     const result = await resend.emails.send({
@@ -190,51 +180,15 @@ export const sendWelcomeEmail = async (email: string, name: string) => {
  * Send password reset email
  */
 export const sendPasswordResetEmail = async (email: string, resetLink: string) => {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #000; color: #fff; padding: 20px; text-align: center; }
-          .content { padding: 20px; background: #f9f9f9; }
-          .button { display: inline-block; padding: 10px 20px; background: #8b5cf6; color: #fff; text-decoration: none; border-radius: 5px; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-          .warning { background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>${COMPANY_NAME}</h1>
-            <p>Réinitialisation de mot de passe</p>
-          </div>
-
-          <div class="content">
-            <p>Bonjour,</p>
-            <p>Vous avez demandé une réinitialisation de mot de passe.</p>
-
-            <p style="text-align: center; margin: 30px 0;">
-              <a href="${resetLink}" class="button">Réinitialiser mon mot de passe</a>
-            </p>
-
-            <div class="warning">
-              <strong>⚠️ Attention:</strong> Ce lien expire dans 24 heures.
-            </div>
-
-            <p>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
-            <p>${COMPANY_NAME}</p>
-          </div>
-
-          <div class="footer">
-            <p>© 2024 ${COMPANY_NAME}. Tous droits réservés.</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+  const content = passwordResetContent(resetLink);
+  const html = baseEmailTemplate({
+    preheader: 'Réinitialisation de mot de passe',
+    content,
+    cta: {
+      text: 'Réinitialiser mon mot de passe',
+      url: resetLink,
+    },
+  });
 
   try {
     const result = await resend.emails.send({
@@ -264,55 +218,15 @@ export const sendShippingNotification = async (
     estimatedDelivery: string;
   }
 ) => {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #000; color: #fff; padding: 20px; text-align: center; }
-          .content { padding: 20px; background: #f9f9f9; }
-          .tracking-box { background: #fff; padding: 20px; border: 2px solid #8b5cf6; border-radius: 5px; margin: 20px 0; }
-          .button { display: inline-block; padding: 10px 20px; background: #8b5cf6; color: #fff; text-decoration: none; border-radius: 5px; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>${COMPANY_NAME}</h1>
-            <p>Votre commande est en route!</p>
-          </div>
-
-          <div class="content">
-            <p>Bonjour ${orderData.customerName},</p>
-            <p>Votre commande #${orderData.orderId} a été expédiée!</p>
-
-            <div class="tracking-box">
-              <h3>Numéro de suivi</h3>
-              <p style="font-size: 18px; font-weight: bold; color: #8b5cf6;">
-                ${orderData.trackingNumber}
-              </p>
-              <p>Livraison estimée: <strong>${orderData.estimatedDelivery}</strong></p>
-            </div>
-
-            <p style="text-align: center; margin: 30px 0;">
-              <a href="https://grandson-clothes.com/track/${orderData.trackingNumber}" class="button">Suivre ma commande</a>
-            </p>
-
-            <p>Merci de votre confiance!</p>
-            <p>${COMPANY_NAME}</p>
-          </div>
-
-          <div class="footer">
-            <p>© 2024 ${COMPANY_NAME}. Tous droits réservés.</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+  const content = shippingNotificationContent(orderData);
+  const html = baseEmailTemplate({
+    preheader: 'Votre commande est en route!',
+    content,
+    cta: {
+      text: 'Suivre ma commande',
+      url: `https://grandson-clothes.com/track/${orderData.trackingNumber}`,
+    },
+  });
 
   try {
     const result = await resend.emails.send({
@@ -338,47 +252,11 @@ export const sendContactFormResponse = async (
   name: string,
   message: string
 ) => {
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #000; color: #fff; padding: 20px; text-align: center; }
-          .content { padding: 20px; background: #f9f9f9; }
-          .message-box { background: #fff; padding: 20px; border-left: 4px solid #8b5cf6; margin: 20px 0; }
-          .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>${COMPANY_NAME}</h1>
-            <p>Merci de nous avoir contactés</p>
-          </div>
-
-          <div class="content">
-            <p>Bonjour ${name},</p>
-            <p>Nous avons bien reçu votre message et nous vous remercions de nous avoir contactés.</p>
-
-            <div class="message-box">
-              <h3>Votre message:</h3>
-              <p>${message}</p>
-            </div>
-
-            <p>Notre équipe examinera votre demande et vous répondra dans les plus brefs délais.</p>
-            <p>${COMPANY_NAME}</p>
-          </div>
-
-          <div class="footer">
-            <p>© 2024 ${COMPANY_NAME}. Tous droits réservés.</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
+  const content = contactFormResponseContent(name, message);
+  const html = baseEmailTemplate({
+    preheader: 'Nous avons reçu votre message',
+    content,
+  });
 
   try {
     const result = await resend.emails.send({

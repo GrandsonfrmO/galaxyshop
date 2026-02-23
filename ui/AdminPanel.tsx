@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdminDashboard } from './AdminDashboard';
 import { 

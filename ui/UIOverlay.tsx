@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 import { ShoppingBag, Grid, LogOut } from 'lucide-react';
 import { AdminLogin } from './AdminLogin';
 
@@ -8,11 +8,7 @@ export const UIOverlay: React.FC = () => {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const toggleCart = useStore((state) => state.toggleCart);
-  const toggleShop = useStore((state) => state.toggleShop);
-  const setScene = useStore((state) => state.setScene);
-  const scene = useStore((state) => state.scene);
-  const cart = useStore((state) => state.cart);
+  const { toggleCart, toggleShop, setScene, scene, cart } = useStore();
   
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 

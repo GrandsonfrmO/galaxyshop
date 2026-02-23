@@ -22,6 +22,12 @@ declare module 'react' {
 
 export type SceneState = 'ORBIT' | 'TRANSITIONING' | 'BOUTIQUE' | 'GAME';
 
+export interface ProductImage {
+  url: string;
+  alt: string;
+  order: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -30,8 +36,10 @@ export interface Product {
   category: string;
   sizes: string[];
   colors: string[];
-  imageUrl: string;
+  imageUrl: string; // Image principale (rétrocompatibilité)
+  images?: ProductImage[]; // Images multiples (nouveau)
   position: [number, number, number];
+  stock?: number; // Quantité en stock (0 = rupture mais toujours commandable)
 }
 
 export interface CartItem extends Product {

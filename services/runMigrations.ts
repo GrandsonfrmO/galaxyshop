@@ -74,7 +74,8 @@ export const runMigrations = async () => {
 };
 
 // Run migrations if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isMainModule = import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'));
+if (isMainModule || process.argv[1].includes('runMigrations')) {
   runMigrations()
     .then(() => {
       console.log('✅ Database is ready!');

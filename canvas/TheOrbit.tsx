@@ -3,14 +3,14 @@ import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Stars, Float, Text, Instance, Instances, Sparkles, Trail, Ring, useCursor } from '@react-three/drei';
 import * as THREE from 'three';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 
 // --- NEW: WARSHIP TRIGGER ---
 
 const WarshipTrigger = () => {
   const ref = useRef<THREE.Group>(null);
   const [hovered, setHover] = useState(false);
-  const startGame = useStore(state => state.startGame);
+  const { startGame } = useStore();
   
   useCursor(hovered);
 
@@ -1098,7 +1098,7 @@ const ShootingStars = () => {
 export const TheOrbit = () => {
   const planetRef = useRef<THREE.Mesh>(null);
   const houseRef = useRef<THREE.Group>(null);
-  const setScene = useStore((state) => state.setScene);
+  const { setScene } = useStore();
   const [hovered, setHover] = React.useState(false);
 
   useFrame((state, delta) => {

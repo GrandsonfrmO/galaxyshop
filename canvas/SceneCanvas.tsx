@@ -5,10 +5,10 @@ import { Environment, Loader, AdaptiveDpr } from '@react-three/drei';
 import { TheOrbit } from './TheOrbit';
 import { TheBoutique } from './TheBoutique';
 import { CameraRig } from './CameraRig';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 
 export const SceneCanvas: React.FC = () => {
-  const sceneState = useStore((state) => state.scene);
+  const { scene: sceneState } = useStore();
 
   // Memoize scene components to prevent unnecessary re-renders
   const sceneComponent = useMemo(() => {

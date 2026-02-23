@@ -3,7 +3,7 @@ import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Stars, PerspectiveCamera, Instance, Instances, Float } from '@react-three/drei';
 import * as THREE from 'three';
-import { useStore } from '../store/useStore';
+import { useStore } from '../context/AppContext';
 
 // --- CONSTANTS & CONFIG ---
 const PLAYER_SPEED = 0.15;
