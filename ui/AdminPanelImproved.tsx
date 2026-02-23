@@ -2,10 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../context/AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AdminDashboard } from './AdminDashboard';
-import { IconCropper } from './IconCropper';
-import { PWAIconGenerator, GeneratedIcons } from './PWAIconGenerator';
 import { MultiImageUploader } from '../components/MultiImageUploader';
-import { savePWAIcons, savePWASettings, loadPWASettings, updateManifest, updateThemeColor, reloadServiceWorker } from '../services/pwaService';
 import { 
   LayoutDashboard, Package, ShoppingCart, Settings, 
   LogOut, Plus, Search, Edit2, Trash2, X, Save, Upload, Tag,
@@ -20,8 +17,8 @@ const AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size'];
 const AVAILABLE_COLORS = ['Noir', 'Blanc', 'Gris', 'Rouge', 'Bleu', 'Vert', 'Jaune', 'Orange', 'Rose', 'Violet', 'Marron', 'Beige'];
 
 export const AdminPanelImproved: React.FC = () => {
-  const { isAdmin, products, addProduct, updateProduct, deleteProduct, toggleAdmin, logoutAdmin, adminLoginTime, deliveryZones, addDeliveryZone, updateDeliveryZone, deleteDeliveryZone, appName, appIcon, setAppName, setAppIcon, loadProducts } = useStore();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'delivery' | 'pwa'>('dashboard');
+  const { isAdmin, products, addProduct, updateProduct, deleteProduct, toggleAdmin, logoutAdmin, adminLoginTime, deliveryZones, addDeliveryZone, updateDeliveryZone, deleteDeliveryZone, loadProducts } = useStore();
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'orders' | 'delivery'>('dashboard');
   const [isEditing, setIsEditing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -37,31 +34,6 @@ export const AdminPanelImproved: React.FC = () => {
   const [isEditingZone, setIsEditingZone] = useState(false);
   const [currentZone, setCurrentZone] = useState<any>({ id: '', name: '', price: 0 });
   const [zoneToDelete, setZoneToDelete] = useState<string | null>(null);
-  
-  // PWA Settings
-  const [pwaAppName, setPwaAppName] = useState(appName);
-  const [pwaAppIcon, setPwaAppIcon] = useState(appIcon);
-  const [isCropperOpen, setIsCropperOpen] = useState(false);
-  const [tempIconForCrop, setTempIconForCrop] = useState<string>('');
-  const [pwaSettings, setPwaSettings] = useState<any>({
-    appName: 'The Boutique',
-    shortName: 'Boutique',
-    description: 'Immersive fashion store with 3D experience',
-    themeColor: '#a855f7',
-    backgroundColor: '#050505',
-    icons: {}
-  });
-  const [generatedIcons, setGeneratedIcons] = useState<GeneratedIcons | null>(null);
-  const [showIconGenerator, setShowIconGenerator] = useState(false);
-  
-  // Load PWA settings on mount
-  useEffect(() => {
-    const loadSettings = async () => {
-      const settings = await loadPWASettings();
-      setPwaSettings(settings);
-    };
-    loadSettings();
-  }, []);
   
   // Mobile search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -372,12 +344,6 @@ export const AdminPanelImproved: React.FC = () => {
                       active={activeTab === 'delivery'} 
                       onClick={() => setActiveTab('delivery')} 
                     />
-                    <NavButton 
-                      icon={<Settings size={18} />} 
-                      label="Paramètres PWA" 
-                      active={activeTab === 'pwa'} 
-                      onClick={() => setActiveTab('pwa')} 
-                    />
                   </nav>
 
                   {/* Footer */}
@@ -429,7 +395,6 @@ export const AdminPanelImproved: React.FC = () => {
                       {activeTab === 'products' && "📦 Produits"}
                       {activeTab === 'orders' && "🛒 Commandes"}
                       {activeTab === 'delivery' && "🚚 Zones de Livraison"}
-                      {activeTab === 'pwa' && "⚙️ Paramètres PWA"}
                     </h2>
                   </div>
                   <button
@@ -484,15 +449,6 @@ export const AdminPanelImproved: React.FC = () => {
                           active={activeTab === 'delivery'} 
                           onClick={() => {
                             setActiveTab('delivery');
-                            setIsMobileMenuOpen(false);
-                          }} 
-                        />
-                        <MobileNavButton 
-                          icon={<Settings size={18} />} 
-                          label="Paramètres PWA" 
-                          active={activeTab === 'pwa'} 
-                          onClick={() => {
-                            setActiveTab('pwa');
                             setIsMobileMenuOpen(false);
                           }} 
                         />
@@ -888,12 +844,10 @@ export const AdminPanelImproved: React.FC = () => {
                       )}
                     </div>
                   )}
-
-                  {/* PWA Settings */}
-                  {activeTab === 'pwa' && (
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg sm:text-xl font-bold mb-4">⚙️ Paramètres PWA</h3>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
                         
                         {/* Quick Stats */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
