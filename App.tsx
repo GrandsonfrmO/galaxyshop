@@ -1,5 +1,6 @@
 
 import React, { Suspense, lazy, useState, useEffect, useMemo } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { ProductOverlay } from './ui/ProductOverlay';
 import { AdminPanelImproved } from './ui/AdminPanelImproved';
 import { UIOverlay } from './ui/UIOverlay';
@@ -80,6 +81,9 @@ function App() {
       <CartSidebar />
       <CheckoutModal />
       <AdminPanelImproved />
+      
+      {/* Vercel Speed Insights */}
+      <SpeedInsights />
     </div>
   );
 }
