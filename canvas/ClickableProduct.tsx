@@ -252,10 +252,17 @@ export const ClickableProduct: React.FC<ClickableProductProps> = ({ product }) =
     <group
       ref={meshRef}
       position={product.position}
-      onClick={handleClick}
-      onPointerOver={() => setHover(true)}
-      onPointerOut={() => setHover(false)}
     >
+      {/* Invisible Hitbox - Sized to match product dimensions */}
+      <mesh
+        onClick={handleClick}
+        onPointerOver={() => setHover(true)}
+        onPointerOut={() => setHover(false)}
+      >
+        <boxGeometry args={[1.0, 1.5, 0.5]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2} floatingRange={[-0.05, 0.05]}>
         {Model}
 

@@ -37,6 +37,14 @@ export const CheckoutModal: React.FC = () => {
 
     setIsSubmitting(true);
     try {
+      // Get CSRF token first
+      const tokenResponse = await fetch('/api/products');
+      const csrfToken = tokenResponse.headers.get('X-CSRF-Token');
+
+      if (!csrfToken) {
+        throw new Error('Failed to get CSRF token');
+      }
+
       const orderData = {
         customerName: `${formData.firstName} ${formData.lastName}`,
         customerEmail: formData.email,
@@ -58,11 +66,17 @@ export const CheckoutModal: React.FC = () => {
 
       const response = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
         body: JSON.stringify(orderData)
       });
 
-      if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API error: ${response.statusText}`);
+      }
 
       const order = await response.json();
       console.log('✅ Order created successfully:', order);
@@ -79,7 +93,7 @@ export const CheckoutModal: React.FC = () => {
     } catch (error) {
       console.error('❌ Error submitting order:', error);
       setIsSubmitting(false);
-      alert('Erreur lors de la création de la commande. Veuillez réessayer.');
+      alert(`Erreur lors de la création de la commande: ${error instanceof Error ? error.message : 'Veuillez réessayer.'}`);
     }
   };
 
