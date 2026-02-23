@@ -1,6 +1,6 @@
 /**
- * Generate placeholder PWA icons
- * Creates simple PNG icons in various sizes for PWA
+ * Generate placeholder icons
+ * Creates simple PNG icons in various sizes
  * Uses a minimal PNG structure for quick generation
  */
 
@@ -31,7 +31,7 @@ function createMinimalPNG(): Buffer {
 }
 
 async function generateIcons() {
-  console.log('🎨 Generating placeholder PWA icons...\n');
+  console.log('🎨 Generating placeholder icons...\n');
   
   const publicDir = path.join(__dirname, '..', 'public');
   const sizes = [16, 32, 72, 96, 120, 128, 144, 152, 167, 180, 192, 384, 512];
@@ -56,9 +56,8 @@ async function generateIcons() {
     
     console.log('\n✨ Placeholder icons generated!');
     console.log('📌 Next steps:');
-    console.log('   1. Use the PWA Icon Generator in the admin panel');
-    console.log('   2. Generate proper icons with your branding');
-    console.log('   3. The icons will be stored in the database\n');
+    console.log('   1. Replace these placeholder icons with your branding');
+    console.log('   2. Ensure icons are in the public directory\n');
     
   } catch (error) {
     console.error('❌ Error generating icons:', error);

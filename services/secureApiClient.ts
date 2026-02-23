@@ -169,30 +169,4 @@ export async function deleteAdminDeliveryZone(id: string): Promise<any> {
   return callAdminAPI(`/delivery-zones/${id}`, 'DELETE');
 }
 
-/**
- * Get PWA settings (admin)
- */
-export async function getAdminPWASettings(): Promise<any> {
-  return callAdminAPI('/pwa/settings', 'GET');
-}
 
-/**
- * Update PWA settings (admin)
- */
-export async function updateAdminPWASettings(settings: any): Promise<any> {
-  return callAdminAPI('/pwa/settings', 'POST', settings);
-}
-
-/**
- * Get PWA icons (admin)
- */
-export async function getAdminPWAIcons(): Promise<any> {
-  return callAdminAPI('/pwa/icons', 'GET');
-}
-
-/**
- * Update PWA icons (admin)
- */
-export async function updateAdminPWAIcons(icons: any): Promise<any> {
-  return callAdminAPI('/pwa/icons', 'POST', icons);
-}

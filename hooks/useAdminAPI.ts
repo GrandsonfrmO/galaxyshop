@@ -5,11 +5,7 @@ import {
   updateOrderStatusAPI,
   fetchDashboardStats,
   fetchRecentOrders,
-  fetchEmailLogs,
-  fetchPWASettings,
-  savePWASettingsAPI,
-  fetchPWAIcons,
-  savePWAIconsAPI
+  fetchEmailLogs
 } from '../services/adminService';
 
 interface UseAdminAPIState {
@@ -139,72 +135,6 @@ export const useAdminAPI = () => {
     }
   }, []);
 
-  // PWA Settings
-  const loadPWASettings = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const settings = await fetchPWASettings();
-      setData(settings);
-      return settings;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error');
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const savePWASettings = useCallback(async (settings: any) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await savePWASettingsAPI(settings);
-      setData(result);
-      return result;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error');
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // PWA Icons
-  const loadPWAIcons = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const icons = await fetchPWAIcons();
-      setData(icons);
-      return icons;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error');
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const savePWAIcons = useCallback(async (icons: any) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await savePWAIconsAPI(icons);
-      setData(result);
-      return result;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error');
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   return {
     ...state,
     // Commandes
@@ -215,11 +145,6 @@ export const useAdminAPI = () => {
     loadDashboardStats,
     loadRecentOrdersList,
     // Email Logs
-    loadEmailLogsList,
-    // PWA
-    loadPWASettings,
-    savePWASettings,
-    loadPWAIcons,
-    savePWAIcons
+    loadEmailLogsList
   };
 };
