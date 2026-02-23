@@ -6,7 +6,6 @@ import { UIOverlay } from './ui/UIOverlay';
 import { CartSidebar } from './ui/CartSidebar';
 import { CheckoutModal } from './ui/CheckoutModal';
 import { ShopModal } from './ui/ShopModal';
-import { PWAInstallPrompt } from './ui/PWAInstallPrompt';
 import { NeonVanguard } from './game/NeonVanguard';
 import { useStore } from './context/AppContext';
 
@@ -81,7 +80,6 @@ function App() {
       <CartSidebar />
       <CheckoutModal />
       <AdminPanelImproved />
-      <PWAInstallPrompt />
     </div>
   );
 }
