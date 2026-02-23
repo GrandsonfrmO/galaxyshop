@@ -1363,14 +1363,6 @@ export const AdminPanelImproved: React.FC = () => {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Icon Cropper Modal */}
-          <IconCropper
-            isOpen={isCropperOpen}
-            onClose={() => setIsCropperOpen(false)}
-            onSave={(croppedImage) => setPwaAppIcon(croppedImage)}
-            initialImage={tempIconForCrop}
-          />
         </>
       )}
     </>
