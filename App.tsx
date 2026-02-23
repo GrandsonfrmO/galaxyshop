@@ -1,5 +1,6 @@
 
 import React, { Suspense, lazy, useState, useEffect, useMemo } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { ProductOverlay } from './ui/ProductOverlay';
 import { AdminPanelImproved } from './ui/AdminPanelImproved';
 import { UIOverlay } from './ui/UIOverlay';
@@ -80,6 +81,9 @@ function App() {
       <CartSidebar />
       <CheckoutModal />
       <AdminPanelImproved />
+      
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   );
 }
