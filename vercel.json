@@ -5,22 +5,9 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "builds": [
-    {
-      "src": "server.ts",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/:path*",
       "destination": "/server.ts"
     },
     {
@@ -30,7 +17,7 @@
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "headers": [
         {
           "key": "X-Content-Type-Options",
@@ -43,11 +30,15 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     },
     {
-      "source": "/assets/**",
+      "source": "/assets/:path*",
       "headers": [
         {
           "key": "Cache-Control",
@@ -56,16 +47,7 @@
       ]
     },
     {
-      "source": "/products/**",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400"
-        }
-      ]
-    },
-    {
-      "source": "**/*.{jpg,jpeg,png,gif,webp,avif,svg}",
+      "source": "/:path*.{jpg,jpeg,png,gif,webp,avif,svg}",
       "headers": [
         {
           "key": "Cache-Control",
@@ -74,7 +56,7 @@
       ]
     },
     {
-      "source": "**/*.{js,css}",
+      "source": "/:path*.{js,css}",
       "headers": [
         {
           "key": "Cache-Control",
